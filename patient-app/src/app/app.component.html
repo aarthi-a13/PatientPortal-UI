@@ -1,0 +1,20 @@
+<h1>ngx-webcam Example</h1>
+
+<!-- Webcam Live Preview -->
+<webcam [trigger]="triggerObservable" (imageCapture)="handleImage($event)"></webcam>
+
+<!-- Capture Button -->
+<button (click)="triggerSnapshot()">Capture Image</button>
+
+<!-- Display Captured Image -->
+<div *ngIf="webcamImage">
+  <h3>Captured Image:</h3>
+  <img [src]="webcamImage.imageAsDataUrl" />
+</div>
+<button (click)="showNextWebcam(true)">Switch Camera</button>
+<webcam [trigger]="triggerObservable" [switchCamera]="nextWebcamObservable"></webcam>
+<select (change)="showNextWebcam($event)">
+  <option *ngFor="let camera of availableCameras" [value]="camera?.deviceId">
+    {{ camera?.label || 'Unknown Camera' }}
+  </option>
+</select>
