@@ -9,13 +9,13 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class PatientSelectionComponent implements OnInit {
   selectedTab: string = 'new'; // Default tab
-  selectedFiles: File | null = null;
+  selectedFiles: File[] = [];
   public imageWidth: number = 0;
   public imageHeight: number = 0;
   showAlert = false;
   alertMessage = '';
   alertType = 'warning';
-  fileName = '';
+  showEnrollmentButton = false;
 
   selectTab(tab: string) {
     this.selectedTab = tab;
@@ -25,19 +25,21 @@ export class PatientSelectionComponent implements OnInit {
   ngOnInit(): void {}
 
   clearFile(): void {
-    this.fileName = '';
     (document.getElementById('fileInput') as HTMLInputElement).value = ''; // Reset file input
+    this.showAlert = true;
+    this.showEnrollmentButton = false;
+    this.alertMessage = 'Please select at lease one file';
+    this.alertType = 'danger';
+    this.selectedFiles = [];
   }
 
   handleFileInput(input: any): void {
-    const file = input.target.files[0] as File;
-    this.selectedFiles = file;
-    if (file) {
-      this.fileName = file.name;
-      console.log('Selected file:', file);
-    }
-    console.log('input webcam image', input);
-    if (!input || !input.files) {
+    this.showAlert = false;
+    
+    const files = (this.selectedFiles = input?.target?.files);
+
+    console.log('input webcam image', files.length);
+    if (!files) {
       console.error('No file input detected.');
       this.showAlert = true;
       this.alertMessage = 'No file input detected.';
@@ -45,7 +47,6 @@ export class PatientSelectionComponent implements OnInit {
       return;
     }
 
-    const files = input.files;
     if (files.length === 0) {
       console.error('No files selected.');
       this.showAlert = true;
@@ -54,54 +55,50 @@ export class PatientSelectionComponent implements OnInit {
       return;
     }
 
-    if (this.selectedFiles) {
-      this.selectedFiles = input.files;
-      // Create an image object
-      const img = new Image();
-      img.src = URL.createObjectURL(files);
-      img.onload = () => {
-        // Get natural width & height
-        this.imageWidth = img.naturalWidth;
-        this.imageHeight = img.naturalHeight;
-
-        console.log('Image Natural Size:', this.imageWidth, this.imageHeight);
-
-        // Get actual displayed size in the DOM
-        setTimeout(() => {
-          const videoElement = document.querySelector(
-            'video'
-          ) as HTMLVideoElement;
-          if (videoElement) {
-            const computedWidth = videoElement.clientWidth;
-            const computedHeight = videoElement.clientHeight;
-            if (computedWidth < 100 || computedHeight < 100) {
-              this.showAlert = true;
-              this.alertMessage =
-                'Image resolution too low. Please upload a clearer image.';
-              this.alertType = 'danger';
-            }
-            console.log('Actual Rendered Size:', computedWidth, computedHeight);
+    if (files) {
+      this.selectedFiles = input?.target?.files;
+      this.showEnrollmentButton = true;
+      console.log(this.selectedFiles[0]);
+      for (let i = 0; i < this.selectedFiles.length; i++) {
+        console.log('iterate files ', this.selectedFiles[i]);
+        // Create an image object
+        const img = new Image();
+        img.src = URL.createObjectURL(this.selectedFiles[i]);
+        img.onload = () => {
+          // Get natural width & height
+          this.imageWidth = img.naturalWidth;
+          this.imageHeight = img.naturalHeight;
+          if (this.imageWidth < 500 || this.imageHeight < 500) {
+            this.showEnrollmentButton = false;
+            this.showAlert = true;
+            this.alertMessage =
+              'Image resolution too low. Please upload a clearer image.';
+            this.alertType = 'danger';
           }
-        }, 100); // Timeout to ensure styles are applied
-      };
+        };
+      }
     }
   }
 
   uploadEnrollment(): void {
-    if (this.selectedFiles === null) {
-      // this.uploadError = 'Please upload at least one enrollment form.';
+    if (this.selectedFiles.length === 0) {
+      this.showAlert = true;
+      this.alertMessage = 'Please upload at least one enrollment form.';
       return;
     }
 
     const formData = new FormData();
-    formData.append('files', this.selectedFiles);
+    for (let i = 0; i < this.selectedFiles.length; i++) {
+      const file = this.selectedFiles[i];
+      formData.append('files', file);
+    }
     this.patientEnrollmentService.uploadEnrollment(formData).subscribe({
       next: (response) => {
         if (!response.patient?.pid) {
-          throw new Error(
+          this.showAlert = true;
+          this.alertMessage =
             response.message ||
-              'No valid details extracted. Please upload a clearer form.'
-          );
+            'No valid details extracted. Please upload a clearer form.';
         }
       },
       error: (error: HttpErrorResponse) => {

@@ -7,8 +7,8 @@ import { Component, Input } from '@angular/core';
 })
 export class AlertComponent {
   @Input() alertMessage: string = '';
-  @Input() alertType: string = '';
-  showAlert: boolean = false;
+  @Input() alertType: string = 'warning';
+  @Input() showAlert: boolean = false;
 
   triggerAlert(message: string, type: string) {
     this.alertMessage = message;

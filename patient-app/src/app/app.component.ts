@@ -12,31 +12,7 @@ export class AppComponent {
   
 }
 // UI Feedback Functions
-/*function showSuccessMessage(message) {
-  const successDiv = document.getElementById("uploadSuccess");
-  successDiv.innerHTML = message;
-  successDiv.classList.remove("d-none");
-  setTimeout(() => successDiv.classList.add("d-none"), 5000);
-}
-
-function showErrorMessage(message) {
-  const errorDiv = document.getElementById("uploadError");
-  errorDiv.innerHTML = message;
-  errorDiv.classList.remove("d-none");
-  setTimeout(() => errorDiv.classList.add("d-none"), 5000);
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  // Ensure these elements exist before adding event listeners
-  const enrollmentFile = document.getElementById("enrollmentFile");
-  const insuranceFile = document.getElementById("insuranceFile");
-  const newInsuranceFile = document.getElementById("newInsuranceFile");
-
-  if (enrollmentFile) enrollmentFile.addEventListener("change", validateImages);
-  if (insuranceFile) insuranceFile.addEventListener("change", validateImages);
-  if (newInsuranceFile) newInsuranceFile.addEventListener("change", validateImages);
-});
-
+/*
 function navigateTo(section) {
   const newPatientSection = document.getElementById("newPatientSection");
   const existingPatientSection = document.getElementById("existingPatientSection");
@@ -54,85 +30,6 @@ function navigateTo(section) {
       existingPatientSection.classList.remove("d-none");
   }
 }
-
-function validateImages(input) {
-  if (!input || !input.files) {
-      console.error("No file input detected.");
-      return;
-  }
-
-  const files = input.files;
-  if (files.length === 0) {
-      console.error("No files selected.");
-      return;
-  }
-
-  console.log("Validating", files.length, "files.");
-  for (let file of files) {
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-      img.onload = function () {
-          if (this.width < 500 || this.height < 500) {
-              alert("Image resolution too low. Please upload a clearer image.");
-              input.target.value = ""; // Clear invalid file
-          }
-      };
-  }
-}
-
-
-function uploadEnrollment() {
-  let fileInput = document.getElementById("enrollmentFile");
-  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-      alert("Please upload at least one enrollment form.");
-      return;
-  }
-
-  let formData = new FormData();
-  for (let file of fileInput.files) {
-      formData.append("files", file);
-  }
-
-  fetch("/patient/enrollment/upload", { // Ensure correct backend URL
-      method: "POST",
-      body: formData
-  })
-      .then(response => {
-          if (!response.ok) {
-              throw new Error(`Server Error: ${response.status} ${response.statusText}`);
-          }
-          return response.text(); // First, read response as text
-      })
-      .then(text => {
-          try {
-              return JSON.parse(text); // Try parsing JSON
-          } catch (error) {
-              throw new Error("Invalid JSON response from server: " + text);
-          }
-      })
-      .then(response => {
-          const parsedDataDiv = document.getElementById("parsedData");
-          const insuranceSection = document.getElementById("insuranceSection");
-          const errorDiv = document.getElementById("uploadError");
-          
-          // Clear previous errors
-          errorDiv.classList.add("d-none");
-          
-          if (!response.patient?.pid) {
-              throw new Error(response.message || "No valid details extracted. Please upload a clearer form.");
-          }
-          
-          parsedDataDiv.innerHTML = generatePatientForm(response.patient);
-          insuranceSection?.classList.remove("d-none");
-          showSuccessMessage(response.message);
-      })
-      .catch(error => {
-          console.error("Upload failed:", error);
-          showErrorMessage(error.message);
-          document.getElementById("insuranceSection").classList.add("d-none");
-      });
-}
-
 
 function generatePatientForm(patient) {
   return `
