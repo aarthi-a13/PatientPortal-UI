@@ -3,18 +3,23 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { WebcamModule } from 'ngx-webcam';
+import { AlertComponent } from './alert/alert.component';
+import { PatientSelectionComponent } from './patient-selection/patient-selection.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    AlertComponent,
+    PatientSelectionComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    WebcamModule
+    HttpClientModule
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
+  exports: [AlertComponent]
 })
 export class AppModule { }

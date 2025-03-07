@@ -1,0 +1,37 @@
+<div class="container mt-5">
+    <h2 class="text-center">Patient Enrollment System</h2>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mt-4" id="patientTabs">
+        <li class="nav-item">
+            <a class="nav-link" [class.active]="selectedTab === 'new'" (click)="selectTab('new')">New Patient</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" [class.active]="selectedTab === 'existing'" (click)="selectTab('existing')">Existing
+                Patient</a>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content mt-3">
+        <div *ngIf="selectedTab === 'new'" class="card p-4">
+            <h5>New Patient Enrollment</h5>
+            <h6>Please upload the enrollment form</h6>
+            <div class="container mt-4">
+                <label for="fileInput" class="form-label">Upload Enrollment Form</label>
+                <div class="input-group">
+                    <input type="file" class="form-control" id="fileInput" (change)="handleFileInput($event)">
+                    <button class="btn btn-outline-secondary" type="button" (click)="clearFile()">Clear</button>
+                </div>
+                <p *ngIf="fileName" class="mt-2">Selected File: <strong>{{ fileName }}</strong></p>
+                <button class="btn btn-primary mt-2" (click)="uploadEnrollment()">Upload Enrollment</button>
+            </div>
+        </div>
+
+        <div *ngIf="selectedTab === 'existing'" class="card p-4">
+            <h5>Existing Patient Login</h5>
+            <p>Access records for an existing patient.</p>
+            <button class="btn btn-secondary">Login</button>
+        </div>
+    </div>
+</div>
