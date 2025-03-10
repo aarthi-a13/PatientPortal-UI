@@ -48,9 +48,30 @@
                     <label class="form-label">Contact Number:</label>
                     <input type="text" class="form-control" formControlName="contactNumber">
 
+                    <label class="form-label">Emergency Contact Number:</label>
+                    <input type="text" class="form-control" formControlName="emergencyContact">
+
+                    <label class="form-label">Medical History:</label>
+                    <textarea class="form-control" formControlName="medicalHistory" rows="5"></textarea>
+
+                    <label class="form-label">Primary Physician:</label>
+                    <input type="text" class="form-control" formControlName="primaryPhysician">
+
                     <button type="button" class="btn btn-primary mt-3"
-                        onclick="submitEnrollment(patient.pid)">Validate & Submit</button>
+                        (click)="submitEnrollment(patient.pid)">Validate & Submit</button>
                 </form>
+            </div>
+            <div *ngIf="showInsuranceSection" id="insuranceSection" class="card mt-5 p-4">
+                <h3>Upload Insurance Card</h3>
+                <form id="insuranceForm" enctype="multipart/form-data">
+                    <label class="form-label">Upload Insurance Card:</label>
+                    <input type="file" class="form-control" id="insuranceFile" multiple accept="image/*" (change)="validateImages($event)">
+                    <button type="button" class="btn btn-success mt-3" (click)="uploadInsurance()">Upload</button>
+                </form>
+                <div id="insuranceData" class="mt-4" *ngIf="insuranceData">
+                    <p><strong>Provider:</strong> {{insuranceData?.insurance?.insuranceProvider}}</p>
+                    <p><strong>Policy Number:</strong> {{insuranceData?.insurance?.policyNumber}}</p>
+                </div>
             </div>
         </div>
 
@@ -60,4 +81,5 @@
             <button class="btn btn-secondary">Login</button>
         </div>
     </div>
+    <app-alert [alertType]="alertType" [alertMessage]="alertMessage" [showAlert]="showAlert"></app-alert>
 </div>

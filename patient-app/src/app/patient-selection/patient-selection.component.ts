@@ -12,6 +12,8 @@ export class PatientSelectionComponent implements OnInit {
   patientForm!: FormGroup;
   selectedTab: string = 'new'; // Default tab
   selectedFiles: File[] = [];
+  insuranceCards: File[] = [];
+  insuranceData: any;
   public imageWidth: number = 0;
   public imageHeight: number = 0;
   showAlert = false;
@@ -19,6 +21,7 @@ export class PatientSelectionComponent implements OnInit {
   alertType = 'warning';
   showEnrollmentButton = false;
   isPatientDetailsReceived = false;
+  showInsuranceSection = false;
   patient: any = {
     fullName: '',
     dateOfBirth: '',
@@ -26,6 +29,9 @@ export class PatientSelectionComponent implements OnInit {
     pid: '',
     address: '',
     contactNumber: '',
+    emergencyContact: '',
+    medicalHistory: '',
+    primaryPhysician: '',
   };
 
   selectTab(tab: string) {
@@ -47,6 +53,9 @@ export class PatientSelectionComponent implements OnInit {
       pid: [{ value: this.patient.pid, disabled: true }],
       address: [this.patient.address],
       contactNumber: [this.patient.contactNumber],
+      emergencyContact: [this.patient.emergencyContact],
+      medicalHistory: [this.patient.medicalHistory],
+      primaryPhysician: [this.patient.primaryPhysician],
     });
   }
 
@@ -106,7 +115,33 @@ export class PatientSelectionComponent implements OnInit {
     }
   }
 
-  submitEnrollment(pid: string) {}
+  submitEnrollment(pid: string) {
+    let formValue = this.patientForm.value;
+    let patientData = {
+      pid: pid,
+      address: formValue?.address,
+      contactNumber: formValue.contactNumber,
+    };
+
+    this.patientEnrollmentService.submitEnrollment(patientData).subscribe({
+      next: (response: any) => {
+        console.log(response);
+        if (response?.pid) {
+          this.showAlert = true;
+          this.alertMessage = response?.message;
+          this.alertType = 'success';
+          this.showInsuranceSection = true;
+        }
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Submit patient enroll failed:', error);
+        this.showAlert = true;
+        this.alertMessage =
+          error.message || 'Patient Enroll Submission failed.';
+        this.alertType = 'danger';
+      },
+    });
+  }
 
   uploadEnrollment(): void {
     if (this.selectedFiles.length === 0) {
@@ -136,7 +171,10 @@ export class PatientSelectionComponent implements OnInit {
             ssn: this.patient.ssn,
             pid: this.patient.pid,
             address: this.patient.address,
-            contactNumber: this.patient.contactNumber
+            contactNumber: this.patient.contactNumber,
+            emergencyContact: this.patient.emergencyContact,
+            medicalHistory: this.patient.medicalHistory,
+            primaryPhysician: this.patient.primaryPhysician,
           });
         }
       },
@@ -148,5 +186,89 @@ export class PatientSelectionComponent implements OnInit {
         // this.clearFile();
       },
     });
+  }
+
+  validateImages($event: any) {
+    const input = $event.target;
+    if (!input || !input.files) {
+      console.error('No file input detected.');
+      this.showAlert = true;
+      this.alertMessage = 'No file input detected.';
+      this.alertType = 'danger';
+      return;
+    }
+
+    const files = (this.insuranceCards = input.files);
+    if (files.length === 0) {
+      console.error('No files selected.');
+      this.showAlert = true;
+      this.alertMessage = 'No files selected.';
+      this.alertType = 'danger';
+      return;
+    }
+
+    if (!files) {
+      console.error('No file input detected.');
+      this.showAlert = true;
+      this.alertMessage = 'No file input detected.';
+      this.alertType = 'danger';
+      return;
+    }
+
+    console.log('Validating', files.length, 'files.');
+    for (let i = 0; i < this.insuranceCards.length; i++) {
+      console.log('iterate cards ', this.insuranceCards[i]);
+      // Create an image object
+      const img = new Image();
+      img.src = URL.createObjectURL(this.insuranceCards[i]);
+      img.onload = () => {
+        // Get natural width & height
+        this.imageWidth = img.naturalWidth;
+        this.imageHeight = img.naturalHeight;
+        if (this.imageWidth < 500 || this.imageHeight < 500) {
+          this.showAlert = true;
+          this.alertMessage =
+            'Image resolution too low. Please upload a clearer image.';
+          this.alertType = 'danger';
+        }
+      };
+    }
+  }
+  uploadInsurance() {
+    let files = this.insuranceCards;
+    if (files.length === 0) {
+      this.showAlert = true;
+      this.alertMessage = 'Please upload at least one insurance card.';
+      this.alertType = 'danger';
+      return;
+    }
+
+    let formData = new FormData();
+    for (let file of files) {
+      formData.append('files', file);
+    }
+
+    this.patientEnrollmentService
+      .uploadInsurance(this.patient.pid, formData)
+      .subscribe({
+        next: (response: any) => {
+          if (!response || !response?.insurance?.policyNumber) {
+            this.showAlert = true;
+            this.alertMessage = 'No valid insurance details extracted.';
+            this.alertType = 'danger';
+          } else {
+            this.insuranceData = response;
+            this.showAlert = true;
+            this.alertMessage = response.message;
+            this.alertType = 'success';
+          }
+        },
+        error: (error: HttpErrorResponse) => {
+          console.error('Insurance upload failed:', error);
+          this.showAlert = true;
+          this.alertMessage = error.message || 'Insurance upload failed.';
+          this.alertType = 'danger';
+        },
+      });
   }
 }

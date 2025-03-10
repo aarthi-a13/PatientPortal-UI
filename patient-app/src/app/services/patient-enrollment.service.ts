@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -11,5 +11,16 @@ export class PatientEnrollmentService {
 
   uploadEnrollment(formData: FormData): Observable<any> {
     return this.http.post<any>(this.BASE_URL + 'enrollment/upload', formData)
+  }
+
+  submitEnrollment(payload: any): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+    });
+    return this.http.post<any>(this.BASE_URL + 'enrollment/submit', payload, { headers});
+  }
+
+  uploadInsurance(pid: string, formData: FormData): Observable<any> {
+    return this.http.post<any>(this.BASE_URL + 'insurance/upload?pid=' + pid, formData);
   }
 }
