@@ -21,10 +21,14 @@ export class PatientEnrollmentService {
   }
 
   uploadInsurance(pid: string, formData: FormData): Observable<any> {
-    return this.http.post<any>(this.BASE_URL + 'insurance/upload?pid=' + pid, formData);
+    return this.http.post<any>(this.BASE_URL + 'insurance/upload?patientId=' + pid, formData);
   }
 
   fetchPatientDetails(id: string): Observable<any> {
-    return this.http.get<any>(this.BASE_URL + 'enrollment/details?pid=' + id);
+    return this.http.get<any>(this.BASE_URL + 'enrollment/details?patientId=' + id);
+  }
+
+  fetchPatientInsuranceDetails(id: string): Observable<any> {
+    return this.http.get<any>(this.BASE_URL + 'insurance/details?patientId=' + id);
   }
 }
