@@ -35,8 +35,13 @@ export class ErrorInterceptorService implements HttpInterceptor {
               errorMessage = 'Not Found! The requested resource was not found.';
               break;
             case 500:
-              errorMessage = error.error.error === 'Failed to process enrollment' ? 'Please check the Existing Patient tab if you are already enrolled.' :
-              'Server Error! Please try again later.';
+              if (error.error.error === 'Failed to process enrollment') {
+                errorMessage = 'Please check the Existing Patient tab if you are already enrolled.'
+              } else if (error.error.error === 'Please upload the clear form') {
+                errorMessage = 'Please upload the clear form';
+              } else {
+                errorMessage = 'Server Error! Please try again later.';
+              }
               break;
             default:
               errorMessage = `Error ${error.status}: ${error.message}`;
