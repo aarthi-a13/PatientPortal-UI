@@ -15,6 +15,7 @@ export class PatientSelectionComponent implements OnInit {
   selectedFiles: File[] = [];
   insuranceCards: File[] = [];
   insuranceData: any;
+  existingPatientInsuranceData: any;
   public imageWidth: number = 0;
   public imageHeight: number = 0;
   showAlert = false;
@@ -22,8 +23,21 @@ export class PatientSelectionComponent implements OnInit {
   alertType = 'warning';
   showEnrollmentButton = false;
   isPatientDetailsReceived = false;
+  isExistingPatientDetailsReceived = false;
   showInsuranceSection = false;
+  showInsuranceSectionExisting = false;
   patient: any = {
+    fullName: '',
+    dateOfBirth: '',
+    ssn: '',
+    pid: '',
+    address: '',
+    contactNumber: '',
+    emergencyContact: '',
+    medicalHistory: '',
+    primaryPhysician: '',
+  };
+  existingPatient: any = {
     fullName: '',
     dateOfBirth: '',
     ssn: '',
@@ -49,7 +63,15 @@ export class PatientSelectionComponent implements OnInit {
   }
   initializeExistingPatientForm() {
     this.existingPatientForm = this.fb.group({
-      pid: ''
+      fullName: [{ value: this.existingPatient.fullName, disabled: true }],
+      dateOfBirth: [{ value: this.existingPatient.dateOfBirth, disabled: true }],
+      ssn: [{ value: this.existingPatient.ssn, disabled: true }],
+      pid: '',
+      address: [this.existingPatient.address],
+      contactNumber: [this.existingPatient.contactNumber],
+      emergencyContact: [this.existingPatient.emergencyContact],
+      medicalHistory: [this.existingPatient.medicalHistory],
+      primaryPhysician: [this.existingPatient.primaryPhysician],
     });
   }
   initializeNewPatientForm() {
@@ -68,6 +90,7 @@ export class PatientSelectionComponent implements OnInit {
 
   fetchPatientDetails() {
     let patientId = this.existingPatientForm.value.pid;
+    // this.existingPatient.pid = patientId;
     if (!patientId) {
       this.showAlert = true;
       this.alertMessage = 'Please enter SSN or Patient ID.';
@@ -78,6 +101,21 @@ export class PatientSelectionComponent implements OnInit {
     .subscribe({
       next: (response: any) => {
         console.log(response);
+        this.existingPatient = response;
+        this.showInsuranceSectionExisting = true;
+        this.isExistingPatientDetailsReceived = true;
+        this.existingPatientForm.setValue({
+          fullName: this.existingPatient?.fullName,
+          dateOfBirth: this.existingPatient?.dateOfBirth,
+          ssn: this.existingPatient?.ssn,
+          pid: this.existingPatient?.pid,
+          address: this.existingPatient?.address,
+          contactNumber: this.existingPatient?.contactNumber,
+          emergencyContact: this.existingPatient?.emergencyContact,
+          medicalHistory: this.existingPatient?.medicalHistory,
+          primaryPhysician: this.existingPatient?.primaryPhysician,
+        });
+        this.fetchInsuranceDetails(this.existingPatient?.pid);
       },
       error: (error: HttpErrorResponse) => {
         console.error('Fetching patient details failed:', error);
@@ -86,20 +124,24 @@ export class PatientSelectionComponent implements OnInit {
           error.message || 'Fetching patient details failed.';
         this.alertType = 'danger';
       },
-    })
+    });
+  }
 
-    // fetch("/patient/enrollment/details?patientId=" + patientId)
-    //   .then(response => response.json())
-    //   .then(data => {
-    //     if (!data || !data.fullName) {
-    //       document.getElementById("patientDetails").innerHTML = "<p class='text-danger'>No records found.</p>";
-    //     } else {
-    //       document.getElementById("patientDetails").innerHTML = generatePatientForm(data);
-    //       document.getElementById("existingInsuranceSection").classList.remove("d-none");
-    //       fetchInsuranceDetails(data.pid);
-    //     }
-    //   })
-    //   .catch(error => console.error("Error:", error));
+  fetchInsuranceDetails(patientId: string) {
+    this.patientEnrollmentService.fetchPatientInsuranceDetails(patientId)
+    .subscribe({
+      next: (response: any) => {
+        console.log(response);
+        this.existingPatientInsuranceData = response;
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Fetching patient insurance details failed:', error);
+        this.showAlert = true;
+        this.alertMessage =
+          error.message || 'Fetching patient insurance details failed.';
+        this.alertType = 'danger';
+      },
+    });
   }
 
   clearFile(): void {
@@ -158,12 +200,15 @@ export class PatientSelectionComponent implements OnInit {
     }
   }
 
-  submitEnrollment(pid: string) {
-    let formValue = this.patientForm.value;
+  submitEnrollment(patient: any, isExisting: boolean) {
+    const value = patient.value;
     let patientData = {
-      pid: pid,
-      address: formValue?.address,
-      contactNumber: formValue.contactNumber,
+      pid: value.pid,
+      address: value.address,
+      contactNumber: value.contactNumber,
+      emergencyContact: value.emergencyContact,
+      medicalHistory: value.medicalHistory,
+      primaryPhysician: value.primaryPhysician,
     };
 
     this.patientEnrollmentService.submitEnrollment(patientData).subscribe({
@@ -173,7 +218,11 @@ export class PatientSelectionComponent implements OnInit {
           this.showAlert = true;
           this.alertMessage = response?.message;
           this.alertType = 'success';
-          this.showInsuranceSection = true;
+          if (isExisting) {
+            this.showInsuranceSectionExisting = true;
+          } else {
+            this.showInsuranceSection = true;
+          }
         }
       },
       error: (error: HttpErrorResponse) => {
@@ -277,7 +326,7 @@ export class PatientSelectionComponent implements OnInit {
       };
     }
   }
-  uploadInsurance() {
+  uploadInsurance(isExisting: boolean) {
     let files = this.insuranceCards;
     if (files.length === 0) {
       this.showAlert = true;
@@ -292,7 +341,7 @@ export class PatientSelectionComponent implements OnInit {
     }
 
     this.patientEnrollmentService
-      .uploadInsurance(this.patient.pid, formData)
+      .uploadInsurance(isExisting ? this.existingPatient.pid : this.patient.pid, formData)
       .subscribe({
         next: (response: any) => {
           if (!response || !response?.insurance?.policyNumber) {
@@ -300,7 +349,11 @@ export class PatientSelectionComponent implements OnInit {
             this.alertMessage = 'No valid insurance details extracted.';
             this.alertType = 'danger';
           } else {
-            this.insuranceData = response;
+            if (isExisting) {
+              this.existingPatientInsuranceData = [...this.existingPatientInsuranceData, response.insurance];
+            } else {
+              this.insuranceData = response;
+            }
             this.showAlert = true;
             this.alertMessage = response.message;
             this.alertType = 'success';
