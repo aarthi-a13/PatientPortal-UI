@@ -8,12 +8,14 @@ import { PatientSelectionComponent } from './patient-selection/patient-selection
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { ErrorInterceptorService } from './interceptors/error.service';
 import { ReactiveFormsModule } from '@angular/forms';
+import { AlertModalComponent } from './alert-modal/alert-modal.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     AlertComponent,
-    PatientSelectionComponent
+    PatientSelectionComponent,
+    AlertModalComponent
   ],
   imports: [
     BrowserModule,
@@ -25,6 +27,6 @@ import { ReactiveFormsModule } from '@angular/forms';
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptorService, multi: true }
   ],
   bootstrap: [AppComponent],
-  exports: [AlertComponent]
+  exports: [AlertComponent, AlertModalComponent]
 })
 export class AppModule { }

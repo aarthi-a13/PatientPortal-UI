@@ -23,4 +23,8 @@ export class PatientEnrollmentService {
   uploadInsurance(pid: string, formData: FormData): Observable<any> {
     return this.http.post<any>(this.BASE_URL + 'insurance/upload?pid=' + pid, formData);
   }
+
+  fetchPatientDetails(id: string): Observable<any> {
+    return this.http.get<any>(this.BASE_URL + 'enrollment/details?pid=' + id);
+  }
 }

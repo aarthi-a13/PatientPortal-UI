@@ -10,6 +10,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 })
 export class PatientSelectionComponent implements OnInit {
   patientForm!: FormGroup;
+  existingPatientForm!: FormGroup;
   selectedTab: string = 'new'; // Default tab
   selectedFiles: File[] = [];
   insuranceCards: File[] = [];
@@ -36,16 +37,22 @@ export class PatientSelectionComponent implements OnInit {
 
   selectTab(tab: string) {
     this.selectedTab = tab;
+    tab === 'new' ? this.initializeNewPatientForm() : this.initializeExistingPatientForm();
   }
   constructor(
     public patientEnrollmentService: PatientEnrollmentService,
     private fb: FormBuilder
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.initializeForm();
+    this.initializeNewPatientForm();
   }
-  initializeForm() {
+  initializeExistingPatientForm() {
+    this.existingPatientForm = this.fb.group({
+      pid: ''
+    });
+  }
+  initializeNewPatientForm() {
     this.patientForm = this.fb.group({
       fullName: [{ value: this.patient.fullName, disabled: true }],
       dateOfBirth: [{ value: this.patient.dateOfBirth, disabled: true }],
@@ -57,6 +64,42 @@ export class PatientSelectionComponent implements OnInit {
       medicalHistory: [this.patient.medicalHistory],
       primaryPhysician: [this.patient.primaryPhysician],
     });
+  }
+
+  fetchPatientDetails() {
+    let patientId = this.existingPatientForm.value.pid;
+    if (!patientId) {
+      this.showAlert = true;
+      this.alertMessage = 'Please enter SSN or Patient ID.';
+      this.alertType = 'danger';
+      return;
+    }
+    this.patientEnrollmentService.fetchPatientDetails(patientId)
+    .subscribe({
+      next: (response: any) => {
+        console.log(response);
+      },
+      error: (error: HttpErrorResponse) => {
+        console.error('Fetching patient details failed:', error);
+        this.showAlert = true;
+        this.alertMessage =
+          error.message || 'Fetching patient details failed.';
+        this.alertType = 'danger';
+      },
+    })
+
+    // fetch("/patient/enrollment/details?patientId=" + patientId)
+    //   .then(response => response.json())
+    //   .then(data => {
+    //     if (!data || !data.fullName) {
+    //       document.getElementById("patientDetails").innerHTML = "<p class='text-danger'>No records found.</p>";
+    //     } else {
+    //       document.getElementById("patientDetails").innerHTML = generatePatientForm(data);
+    //       document.getElementById("existingInsuranceSection").classList.remove("d-none");
+    //       fetchInsuranceDetails(data.pid);
+    //     }
+    //   })
+    //   .catch(error => console.error("Error:", error));
   }
 
   clearFile(): void {

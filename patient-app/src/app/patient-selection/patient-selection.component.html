@@ -1,6 +1,5 @@
 <div class="container mt-5">
     <h2 class="text-center">Patient Enrollment System</h2>
-
     <app-alert [alertType]="alertType" [alertMessage]="alertMessage" [showAlert]="showAlert"></app-alert>
     <!-- Tabs -->
     <ul class="nav nav-tabs mt-4" id="patientTabs">
@@ -57,29 +56,68 @@
                     <label class="form-label">Primary Physician:</label>
                     <input type="text" class="form-control" formControlName="primaryPhysician">
 
-                    <button type="button" class="btn btn-primary mt-3"
-                        (click)="submitEnrollment(patient.pid)">Validate & Submit</button>
+                    <button type="button" class="btn btn-primary mt-3" (click)="submitEnrollment(patient.pid)">Validate
+                        & Submit</button>
                 </form>
             </div>
             <div *ngIf="showInsuranceSection" id="insuranceSection" class="card mt-5 p-4">
                 <h3>Upload Insurance Card</h3>
                 <form id="insuranceForm" enctype="multipart/form-data">
                     <label class="form-label">Upload Insurance Card:</label>
-                    <input type="file" class="form-control" id="insuranceFile" multiple accept="image/*" (change)="validateImages($event)">
-                    <button type="button" class="btn btn-success mt-3" (click)="uploadInsurance()">Upload</button>
+                    <input type="file" class="form-control" id="insuranceFile" multiple accept="image/*"
+                        (change)="validateImages($event)">
+                    <button type="button" class="btn btn-primary mt-3" (click)="uploadInsurance()">Upload
+                        Insurance</button>
                 </form>
                 <div id="insuranceData" class="mt-4" *ngIf="insuranceData">
-                    <p><strong>Provider:</strong> {{insuranceData?.insurance?.insuranceProvider}}</p>
-                    <p><strong>Policy Number:</strong> {{insuranceData?.insurance?.policyNumber}}</p>
+                    <div class="container mt-4">
+                        <h2>Insurance Details</h2>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Policy Number</th>
+                                    <th>Policyholder Name</th>
+                                    <th>Insurance Provider</th>
+                                    <th>Group Number</th>
+                                    <th>Coverage Start Date</th>
+                                    <th>Coverage End Date</th>
+                                    <th>Expired</th>
+                                    <th>Insured Address</th>
+                                    <th>Provider Contact</th>
+                                    <th>Plan Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ insuranceData?.insurance?.policyNumber }}</td>
+                                    <td>{{ insuranceData?.insurance?.policyholderName }}</td>
+                                    <td>{{ insuranceData?.insurance?.insuranceProvider }}</td>
+                                    <td>{{ insuranceData?.insurance?.groupNumber }}</td>
+                                    <td>{{ insuranceData?.insurance?.coverageStartDate }}</td>
+                                    <td>{{ insuranceData?.insurance?.coverageEndDate }}</td>
+                                    <td>{{ insuranceData?.insurance?.expired ? 'Yes' : 'No' }}</td>
+                                    <td>{{ insuranceData?.insurance?.insuredAddress }}</td>
+                                    <td>{{ insuranceData?.insurance?.providerContact || 'N/A' }}</td>
+                                    <td>{{ insuranceData?.insurance?.planType }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- <p><strong>Provider:</strong> {{insuranceData?.insurance?.insuranceProvider}}</p>
+                    <p><strong>Policy Number:</strong> {{insuranceData?.insurance?.policyNumber}}</p> -->
                 </div>
             </div>
         </div>
 
         <div *ngIf="selectedTab === 'existing'" class="card p-4">
-            <h5>Existing Patient Login</h5>
-            <p>Access records for an existing patient.</p>
-            <button class="btn btn-secondary">Login</button>
+            <h3>Existing Patient Lookup</h3>
+            <form id="lookupForm" [formGroup]="existingPatientForm">
+                <label class="form-label">Enter SSN or Patient ID:</label>
+                <input type="text" class="form-control" id="patientId" formControlName="pid" placeholder="SSN or PID">
+                <button type="button" class="btn btn-primary mt-3" (click)="fetchPatientDetails()">Search</button>
+            </form>
         </div>
     </div>
     <app-alert [alertType]="alertType" [alertMessage]="alertMessage" [showAlert]="showAlert"></app-alert>
 </div>
+<!-- <app-alert-modal  [alertMessage]="alertMessage" [alertType]="alertType" ></app-alert-modal> -->
